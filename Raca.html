@@ -13,7 +13,6 @@ body {
     position: relative;
 }
 
-/* Duck div */
 .raca {
     position: absolute;
     width: 40px;
@@ -22,65 +21,68 @@ body {
     background-size: contain;
 }
 
-/* Slika gumb */
 #racaGumb {
     position: absolute;
     left: 350px;
     top: 50%;
     transform: translateY(-50%);
     width: 300px;
-    height: auto;
     cursor: pointer;
     z-index: 1000;
 }
 
-/* Koordinati */
 #coords {
     position: fixed;
     top: 10px;
     right: 10px;
-    background-color: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.7);
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
     z-index: 10000;
-    font-family: sans-serif;
 }
 </style>
 </head>
 <body>
 
-<img id="racaGumb" src="racaGumb.png" alt="Začni">
+<img id="racaGumb" src="racaGumb.png">
 <div id="coords">X: 0, Y: 0</div>
 
 <script>
-// Točke za raco
-const xTočke = [2037, 2037, 2097, 2097, 2038, 2038, 2068, 2068, 2220, 2220, 2281, 2281, 2253, 2253, 2227, 2227, 2193, 2193, 2095, 2095, 2065, 2065, 2128, 2128, 2097, 2097, 2008, 2008, 1917, 1917, 1882, 1882, 1852, 1852, 1882, 1882, 1852, 1852, 1882, 1882, 1819, 1819, 1794, 1794, 1728, 1728, 1698, 1698, 1758, 1758, 1789, 1789, 1821, 1821, 1858, 1858, 1884, 1884, 1849, 1849, 1792, 1792, 1728, 1728, 1762, 1762, 1702, 1702];
-const yTočke = [483, 643, 643, 679, 679, 738, 738, 710, 710, 738, 738, 765, 765, 805, 805, 772, 772, 742, 742, 765, 765, 799, 799, 834, 834, 890, 890, 916, 916, 799, 799, 831, 831, 862, 862, 888, 888, 921, 921, 982, 982, 1075, 1075, 1135, 1135, 1198, 1198, 1227, 1227, 1198, 1198, 1224, 1224, 1168, 1168, 1141, 1141, 1258, 1258, 1287, 1287, 1318, 1318, 1290, 1290, 1263, 1263, 1329];
+const xTočke = [2037,2037,2097,2097,2038,2038,2068,2068,2220,2220,2281,2281,2253,2253,2227,2227,2193,2193,2095,2095,2065,2065,2128,2128,2097,2097,2008,2008,1917,1917,1882,1882,1852,1852,1882,1882,1852,1852,1882,1882,1819,1819,1794,1794,1728,1728,1698,1698,1758,1758,1789,1789,1821,1821,1858,1858,1884,1884,1849,1849,1792,1792,1728,1728,1762,1762,1702,1702];
+const yTočke = [483,643,643,679,679,738,738,710,710,738,738,765,765,805,805,772,772,742,742,765,765,799,799,834,834,890,890,916,916,799,799,831,831,862,862,888,888,921,921,982,982,1075,1075,1135,1135,1198,1198,1227,1227,1198,1198,1224,1224,1168,1168,1141,1141,1258,1258,1287,1287,1318,1318,1290,1290,1263,1263,1329];
+
 const intervalMs = 5;
 
-let racaCount = 0; // števec ustvarjenih rac
-const maxRac = 5;  // največ rac
+let racaCount = 0;
+const maxRac = 5;
+let timeoutId = null; // 🔥 pomembno
 
-// Funkcija za premik ene race
 function premakniRaco(racaDiv, index = 0) {
-    if (index >= xTočke.length) return;
+    if (index >= xTočke.length) {
+        koncniPremikRaca(racaDiv);
+        return;
+    }
 
     const startX = parseInt(racaDiv.style.left) + racaDiv.offsetWidth / 2;
     const startY = parseInt(racaDiv.style.top) + racaDiv.offsetHeight / 2;
+
     const endX = xTočke[index];
     const endY = yTočke[index];
 
     const steps = 100;
     let currentStep = 0;
+
     const dx = (endX - startX) / steps;
     const dy = (endY - startY) / steps;
 
     const moveInterval = setInterval(() => {
         if (currentStep >= steps) {
             clearInterval(moveInterval);
+
             racaDiv.style.left = (endX - racaDiv.offsetWidth / 2) + 'px';
             racaDiv.style.top = (endY - racaDiv.offsetHeight / 2) + 'px';
+
             premakniRaco(racaDiv, index + 1);
             return;
         }
@@ -95,35 +97,73 @@ function premakniRaco(racaDiv, index = 0) {
     }, intervalMs);
 }
 
-// Funkcija za ustvarjanje nove race
+function koncniPremikRaca(racaDiv) {
+    const endX = Math.random() * window.innerWidth;
+    const endY = Math.random() * window.innerHeight;
+
+    const startX = parseInt(racaDiv.style.left) + racaDiv.offsetWidth / 2;
+    const startY = parseInt(racaDiv.style.top) + racaDiv.offsetHeight / 2;
+
+    const steps = 100;
+    let currentStep = 0;
+
+    const dx = (endX - startX) / steps;
+    const dy = (endY - startY) / steps;
+
+    const moveInterval = setInterval(() => {
+        if (currentStep >= steps) {
+            clearInterval(moveInterval);
+            return;
+        }
+
+        const x = startX + dx * currentStep;
+        const y = startY + dy * currentStep;
+
+        racaDiv.style.left = (x - racaDiv.offsetWidth / 2) + 'px';
+        racaDiv.style.top = (y - racaDiv.offsetHeight / 2) + 'px';
+
+        currentStep++;
+    }, intervalMs);
+}
+
+function resetRac() {
+    document.querySelectorAll('.raca').forEach(r => r.remove());
+    racaCount = 0;
+
+    // 🔥 ustavi pending timeout
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+    }
+}
+
 function novaRaca() {
-    if (racaCount >= maxRac) return; // ustavi, če je 5 rac
+    if (racaCount >= maxRac) return;
 
     const racaDiv = document.createElement('div');
     racaDiv.classList.add('raca');
+
     racaDiv.style.left = (xTočke[0] - 20) + 'px';
     racaDiv.style.top = (yTočke[0] - 20) + 'px';
+
     document.body.appendChild(racaDiv);
 
     premakniRaco(racaDiv, 1);
 
     racaCount++;
+
     if (racaCount < maxRac) {
-        setTimeout(novaRaca, 8000); // nova raca čez 5 sekund
+        timeoutId = setTimeout(novaRaca, 8000); // ✅ vedno 8s pavza
     }
 }
 
-// Klik na gumb začne animacijo
-const racaGumb = document.getElementById('racaGumb');
-racaGumb.onclick = () => {
-    if (racaCount === 0) {
-        novaRaca(); // začne prvo raco
-    }
+document.getElementById('racaGumb').onclick = () => {
+    resetRac();
+    novaRaca();
 };
 
-// Prikaz koordinat miške
-document.addEventListener('mousemove', function(e) {
-    document.getElementById('coords').textContent = `X: ${e.clientX}, Y: ${e.clientY}`;
+document.addEventListener('mousemove', e => {
+    document.getElementById('coords').textContent =
+        `X: ${e.clientX}, Y: ${e.clientY}`;
 });
 </script>
 
