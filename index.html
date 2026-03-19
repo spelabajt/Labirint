@@ -197,6 +197,17 @@ document.getElementById('racaGumb').onclick = () => {
         stRace++;
     }, delay);
 };
+	
+document.addEventListener('mousemove', e => {
+    document.getElementById('coords').textContent = `X: ${e.clientX}, Y: ${e.clientY}`;
+
+    const info = document.getElementById('infoPolje');
+    if (Math.abs(e.clientX - 546) <= 10 && Math.abs(e.clientY - 226) <= 10) {
+        info.style.display = 'block';
+    } else {
+        info.style.display = 'none';
+    }
+});
 
 </script>
 
