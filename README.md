@@ -1,4 +1,4 @@
-<h1 align="center">MAZE</h1>
+<h1 align="center">MAZE OF DUCKS</h1>
 ## Project Overview  
 For my school project, I created a maze and turned it into a simple interactive game. The goal was to design both the visual layout and the functionality. The maze itself was generated on this website: https://worksheets.theteacherscorner.net/make-your-own/maze/, which helped me create a structured and playable design.
 
