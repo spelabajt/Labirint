@@ -52,6 +52,7 @@ body {
     z-index: 2000;
 }
 
+
 </style>
 	<link rel="icon" href="img/racaIkona.png">
 	<title>Maze of Ducks</title>
@@ -61,6 +62,7 @@ body {
 <img id="racaGumb" src="img/racaGumb.png">
 <img id="mama" src="img/mamaRaca.gif">
 <div id="infoPolje">Špela Bajt<br>4. Rb</div>
+<div id="coords">X: 0, Y: 0</div>
 
 <audio id="racaAudio" src="music/raca.mp3" loop></audio>
 
@@ -197,7 +199,7 @@ document.getElementById('racaGumb').onclick = () => {
         stRace++;
     }, delay);
 };
-	
+
 document.addEventListener('mousemove', e => {
     document.getElementById('coords').textContent = `X: ${e.clientX}, Y: ${e.clientY}`;
 
