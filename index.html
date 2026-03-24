@@ -215,3 +215,98 @@ document.addEventListener('mousemove', e => {
 
 </body>
 </html>
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html, body { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; }
+body { background:url('img/raca.png') no-repeat center center; background-size:cover; position:relative; }
+.raca { position:absolute; width:40px; height:40px; background:url('img/raca.gif') no-repeat center center; background-size:contain; }
+#mama { position:absolute; width:200px; cursor:pointer; z-index:1000; }
+#racaGumb { position:absolute; width:300px; cursor:pointer; z-index:1000; }
+#infoPolje { position:absolute; background:rgba(255,255,255,0.9); padding:10px 15px; border:2px solid black; border-radius:5px; font-family:Arial,sans-serif; font-size:16px; display:none; z-index:2000; }
+#coords { position:absolute; top:0; left:0; font-family:monospace; color:black; background:rgba(255,255,255,0.5); padding:5px; z-index:2001; }
+</style>
+</head>
+<body>
+
+<img id="racaGumb" src="img/racaGumb.png">
+<img id="mama" src="img/mamaRaca.gif">
+<div id="infoPolje">Špela Bajt<br>4. Rb</div>
+<div id="coords"></div>
+<audio id="racaAudio" src="music/raca.mp3" loop></audio>
+
+<script>
+const originalWidth=1600, originalHeight=900;
+const xZ_orig=[1212,1180,1151,1121,1096], yZ_orig=[228,233,241,264,295];
+const xTocke_orig=[1358,1358,1399,1399,1358,1358,1379,1379,1480,1480,1521,1521,1503,1508,1480,1480,1462,1462,1400,1400,1380,1380,1420,1420,1400,1400,1333,1333,1278,1278,1261,1261,1238,1238,1257,1257,1233,1233,1256,1256,1216,1216,1197,1197,1156,1156,1133,1133,1172,1172,1193,1193,1216,1216,1236,1236,1256,1256,1237,1237,1196,1196,1156,1156,1173,1173,1135,1135];
+const yTocke_orig=[325,428,428,449,449,492,492,474,474,492,492,512,512,535,535,513,513,494,494,510,510,532,532,552,552,596,596,609,609,537,537,557,557,577,577,594,594,610,610,655,655,715,715,755,755,797,797,818,818,798,798,820,820,780,780,759,759,838,838,860,860,881,881,858,858,839,839,890];
+const xK_orig=[610,690,785,855,900], yK_orig=[875,800,831,730,835];
+
+const intervalMs=6, maxRac=5;
+const audio=document.getElementById('racaAudio');
+let xZ=[], yZ=[], xTocke=[], yTocke=[], xK=[], yK=[];
+let vseRace=[], activeIntervals=[];
+
+function skaliraj(origX,origY){ const scaleX=window.innerWidth/originalWidth, scaleY=window.innerHeight/originalHeight; return {x:origX.map(v=>v*scaleX), y:origY.map(v=>v*scaleY)}; }
+function novaRaca(i){ const r=document.createElement('div'); r.classList.add('raca'); r.dataset.index=i; document.body.appendChild(r); vseRace.push(r); return r; }
+function postaviVse(){ vseRace.forEach((r,i)=>{ r.style.left=(xZ[i]-20)+'px'; r.style.top=(yZ[i]-20)+'px'; }); 
+const mama=document.getElementById('mama'); mama.style.left=(xK[0]-100)+'px'; mama.style.top=(yK[0]-100)+'px'; 
+const gumb=document.getElementById('racaGumb'); gumb.style.left='200px'; gumb.style.top='400px'; }
+
+function premakniRaco(racaDiv, index=0){
+    if(index>=xTocke.length){ koncniPremikRaca(racaDiv, parseInt(racaDiv.dataset.index)); return; }
+    const startX=parseFloat(racaDiv.style.left)+20, startY=parseFloat(racaDiv.style.top)+20;
+    const endX=xTocke[index], endY=yTocke[index], steps=100;
+    let step=0;
+    const dx=(endX-startX)/steps, dy=(endY-startY)/steps;
+    const interval=setInterval(()=>{
+        if(step>=steps){ clearInterval(interval); racaDiv.style.left=(endX-20)+'px'; racaDiv.style.top=(endY-20)+'px'; premakniRaco(racaDiv,index+1); return; }
+        racaDiv.style.left=(startX+dx*step-20)+'px'; racaDiv.style.top=(startY+dy*step-20)+'px'; step++;
+    }, intervalMs);
+    activeIntervals.push(interval);
+}
+
+function koncniPremikRaca(racaDiv,index){
+    const startX=parseFloat(racaDiv.style.left)+20, startY=parseFloat(racaDiv.style.top)+20;
+    const endX=xK[index], endY=yK[index], steps=100; let step=0;
+    const interval=setInterval(()=>{ if(step>=steps){ clearInterval(interval); return; } racaDiv.style.left=(startX+(endX-startX)/steps*step-20)+'px'; racaDiv.style.top=(startY+(endY-startY)/steps*step-20)+'px'; step++; }, intervalMs);
+    activeIntervals.push(interval);
+}
+
+function resetAnimacije(){ activeIntervals.forEach(i=>clearInterval(i)); activeIntervals=[]; }
+
+function inicializiraj(){
+    ({x:xZ,y:yZ}=skaliraj(xZ_orig,yZ_orig));
+    ({x:xTocke,y:yTocke}=skaliraj(xTocke_orig,yTocke_orig));
+    ({x:xK,y:yK}=skaliraj(xK_orig,yK_orig));
+    if(vseRace.length===0) for(let i=0;i<maxRac;i++) novaRaca(i);
+    postaviVse();
+    resetAnimacije();
+}
+
+window.onload=inicializiraj;
+window.addEventListener('resize',inicializiraj);
+
+document.getElementById('racaGumb').onclick=()=>{
+    resetAnimacije();
+    const zamiki=[0,25200,47500,68000,87000];
+    vseRace.forEach((r,i)=>setTimeout(()=>premakniRaco(r,0), zamiki[i]));
+    audio.pause(); audio.currentTime=0; audio.volume=0.5; audio.play().catch(e=>console.log(e));
+};
+
+document.addEventListener('mousemove', e=>{
+    document.getElementById('coords').textContent=`X:${e.clientX}, Y:${e.clientY}`;
+    const info=document.getElementById('infoPolje');
+    const rX=xZ[0], rY=yZ[0];
+    if(Math.abs(e.clientX-rX)<30 && Math.abs(e.clientY-rY)<30) info.style.display='block'; else info.style.display='none';
+});
+</script>
+</body>
+</html>
