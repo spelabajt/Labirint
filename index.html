@@ -1,312 +1,191 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>Maze Of Ducks - Audio Reset</title>
 <style>
-body {
-    margin: 0;
-    height: 950px;
-    background: url('img/raca.png') no-repeat center center;
-    background-size: cover;
-    position: relative;
-	background-color:#4F5D3A;
-}
+    html, body { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; }
+    body { 
+        background: #4F5D3A url('img/raca.png') no-repeat center center; 
+        background-size: cover; 
+        position: relative; 
+    }
 
-.raca {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    background: url('img/raca.gif') no-repeat center center;
-    background-size: contain;
-}
+    #labirint {
+        position: absolute;
+        width: 550px; height: 550px; 
+        left: 950px; top: 300px;  
+    }
 
-#racaGumb {
-    position: absolute;
-    left: 200px;
-    top: 400px;
-    transform: translateY(-50%);
-    width: 300px;
-    cursor: pointer;
-    z-index: 1000;
-}
+    #labirintSlikca {
+        position: absolute; width: 100%; height: 100%;
+        background: url('img/labirintRaca.png') no-repeat center center;
+        background-size: contain; transition: opacity 1s ease; z-index: 1;
+    }
 
-#mama {
-    position: absolute;
-    left: 400px;
-    top: 750px;
-    transform: translateY(-50%);
-    width: 200px;
-    cursor: pointer;
-    z-index: 1000;
-}
+    .raca { 
+        position: absolute; width: 40px; height: 40px; 
+        background: url('img/raca.gif') no-repeat center center; 
+        background-size: contain; z-index: 10;
+        transition: width 0.5s ease, height 0.5s ease, transform 0.2s ease;
+    }
 
-#infoPolje {
-    position: absolute;
-    left: 20px;
-    top: 20px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px 15px;
-    border: 2px solid black;
-    border-radius: 5px;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-    display: none;
-    z-index: 2000;
-}
+    #mama { 
+        position: absolute; left: -150px; top: 200px; width: 40px; z-index: 20;
+        transition: transform 0.4s ease; display: block;
+    }
 
+    #klikTocka {
+        position: absolute;
+        left: 155px; top: 114px; 
+        width: 40px; height: 40px;
+        background: rgba(255, 0, 0, 0); 
+        cursor: pointer; z-index: 100;
+        border-radius: 50%; transform: translate(-50%, -50%);
+    }
 
+    #infoPolje { 
+        position: absolute; background: rgba(255,255,255,0.95); 
+        padding: 10px; border: 2px solid black; border-radius: 5px; 
+        display: none; z-index: 2000; 
+        left: 170px; top: 100px;
+        font-family: Arial, sans-serif; font-weight: bold;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    }
+
+    #racaGumb { position: absolute; left: 200px; top: 400px; width: 250px; cursor: pointer; z-index: 1000; }
+    #preskociGumb {
+        position: absolute; right: 20px; bottom: 20px;
+        padding: 5px 8px; background: rgba(0, 0, 0, 0.6);
+        color: white; border: 2px solid #fff; border-radius: 5px;
+        cursor: pointer; z-index: 2000; font-family: Arial; font-size: 8px;
+    }
 </style>
-	<link rel="icon" href="img/racaIkona.png">
-	<title>Maze of Ducks</title>
 </head>
 <body>
 
+<div id="labirint">
+    <div id="labirintSlikca"></div>
+    <img id="mama" src="img/mamaRaca.gif">
+    <div id="klikTocka"></div>
+    <div id="infoPolje">Špela Bajt</div>
+</div>
+
 <img id="racaGumb" src="img/racaGumb.png">
-<img id="mama" src="img/mamaRaca.gif">
-<div id="infoPolje">Špela Bajt<br>4. Rb</div>
-<div id="coords"></div>
+<button id="preskociGumb">NEXT</button>
 <audio id="racaAudio" src="music/raca.mp3" loop></audio>
 
 <script>
-const xZ = [1212, 1180, 1151, 1121, 1096];
-const yZ = [228, 233, 241, 264, 295];
-
-const xTocke = [1358,1358,1399,1399,1358,1358,1379,1379,1480,1480,1521,1521,1503,1508,1480,1480,1462,1462,1400,1400,1380,1380,1420,1420,1400,1400,1333,1333,1278,1278,1261,1261,1238,1238,1257,1257,1233,1233,1256,1256,1216,1216,1197,1197,1156,1156,1133,1133,1172,1172,1193,1193,1216,1216,1236,1236,1256,1256,1237,1237,1196,1196,1156,1156,1173,1173,1135,1135];
-const yTocke = [325,428,428,449,449,492,492,474,474,492,492,512,512,535,535,513,513,494,494,510,510,532,532,552,552,596,596,609,609,537,537,557,557,577,577,594,594,610,610,655,655,715,715,755,755,797,797,818,818,798,798,820,820,780,780,759,759,838,838,860,860,881,881,858,858,839,839,890];
-
-const xK = [610, 690, 785, 855, 900];
-const yK = [875, 800, 831, 730, 835];
-
-const intervalMs = 6;
-const maxRac = 5;
-
-let stRace=0;
-let vseRace = [];
-let klikCount = 0; 
-let cas = 0; 
-let activeIntervals = []; 
-
-const audio = document.getElementById('racaAudio');
-
-// Ustvari raco
-function novaRaca(index) {
-    const racaDiv = document.createElement('div');
-    racaDiv.classList.add('raca');
-    racaDiv.style.left = (xZ[index] - 20) + 'px';
-    racaDiv.style.top = (yZ[index] - 20) + 'px';
-    racaDiv.dataset.index = index;
-    document.body.appendChild(racaDiv);
-    return racaDiv;
-}
-
-// Premik po poti
-function premakniRaco(racaDiv, index = 0) {
-    if (index >= xTocke.length) {
-        koncniPremikRaca(racaDiv, parseInt(racaDiv.dataset.index));
-        return;
-    }
-    const startX = parseInt(racaDiv.style.left) + 20;
-    const startY = parseInt(racaDiv.style.top) + 20;
-    const endX = xTocke[index];
-    const endY = yTocke[index];
-    const steps = 100;
-    let currentStep = 0;
-    const dx = (endX - startX) / steps;
-    const dy = (endY - startY) / steps;
-
-    const moveInterval = setInterval(() => {
-        if (currentStep >= steps) {
-            clearInterval(moveInterval);
-            racaDiv.style.left = (endX - 20) + 'px';
-            racaDiv.style.top = (endY - 20) + 'px';
-            premakniRaco(racaDiv, index + 1);
-            return;
-        }
-        const x = startX + dx * currentStep;
-        const y = startY + dy * currentStep;
-        racaDiv.style.left = (x - 20) + 'px';
-        racaDiv.style.top = (y - 20) + 'px';
-        currentStep++;
-    }, intervalMs);
-    activeIntervals.push(moveInterval);
-}
-
-// Končni premik
-function koncniPremikRaca(racaDiv, index) {
-    const endX = xK[index];
-    const endY = yK[index];
-    const startX = parseInt(racaDiv.style.left) + 20;
-    const startY = parseInt(racaDiv.style.top) + 20;
-    const steps = 100;
-    let currentStep = 0;
-    const moveInterval = setInterval(() => {
-        if (currentStep >= steps) {
-            clearInterval(moveInterval);
-            return;
-        }
-        const x = startX + (endX - startX) / steps * currentStep;
-        const y = startY + (endY - startY) / steps * currentStep;
-        racaDiv.style.left = (x - 20) + 'px';
-        racaDiv.style.top = (y - 20) + 'px';
-        currentStep++;
-    }, intervalMs);
-    activeIntervals.push(moveInterval);
-}
-
-// Reset → vse race
-function resetPozicije() {
-    activeIntervals.forEach(id => clearInterval(id));
-    activeIntervals = [];
-    vseRace.forEach(r => r.remove());
-    vseRace = [];
-    for (let i = 0; i < maxRac; i++) {
-        const r = novaRaca(i);
-        vseRace.push(r);
-    }
-}
-
-// Ob nalaganju
-window.onload = () => {
-    for (let i = 0; i < maxRac; i++) {
-        const r = novaRaca(i);
-        vseRace.push(r);
-		stRace++;
-    }
-};
-
-// Klik na gumb → start premika + avdio
-document.getElementById('racaGumb').onclick = () => {
-    klikCount++;
-
-    // Reset pozicije in intervalov
-    resetPozicije();
-
-    // Če je avdio že predvajan, ga ustavimo in nastavimo na začetek
-    audio.pause();
-    audio.currentTime = 0;
-    audio.volume = 0.5;
-    audio.play().catch(err => console.log("Avdio se ne predvaja:", err));
-
-    const delay = (klikCount === 1) ? 2000 : 2000;
-
-    // Fiksni zamiki za vsako raco
-    const zamiki = [0, 25200, 47500, 68000, 87000];
-
-    setTimeout(() => {
-        vseRace.forEach((racaDiv, i) => {
-            const racZamik = zamiki[i];
-            setTimeout(() => premakniRaco(racaDiv, 0), racZamik);
-        });
-        stRace++;
-    }, delay);
-};
-
-document.addEventListener('mousemove', e => {
-    document.getElementById('coords').textContent = `X: ${e.clientX}, Y: ${e.clientY}`;
-
+// INFO POLJE KLIK
+document.getElementById('klikTocka').onclick = function() {
     const info = document.getElementById('infoPolje');
-    if (Math.abs(e.clientX - 546) <= 10 && Math.abs(e.clientY - 226) <= 10) {
-        info.style.display = 'block';
-    } else {
-        info.style.display = 'none';
-    }
-});
-
-</script>
-
-</body>
-</html>
-
-
-
-
-
-
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-html, body { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; }
-body { background:url('img/raca.png') no-repeat center center; background-size:cover; position:relative; }
-.raca { position:absolute; width:40px; height:40px; background:url('img/raca.gif') no-repeat center center; background-size:contain; }
-#mama { position:absolute; width:200px; cursor:pointer; z-index:1000; }
-#racaGumb { position:absolute; width:300px; cursor:pointer; z-index:1000; }
-#infoPolje { position:absolute; background:rgba(255,255,255,0.9); padding:10px 15px; border:2px solid black; border-radius:5px; font-family:Arial,sans-serif; font-size:16px; display:none; z-index:2000; }
-#coords { position:absolute; top:0; left:0; font-family:monospace; color:black; background:rgba(255,255,255,0.5); padding:5px; z-index:2001; }
-</style>
-</head>
-<body>
-
-<img id="racaGumb" src="img/racaGumb.png">
-<img id="mama" src="img/mamaRaca.gif">
-<div id="infoPolje">Špela Bajt<br>4. Rb</div>
-<div id="coords"></div>
-<audio id="racaAudio" src="music/raca.mp3" loop></audio>
-
-<script>
-const originalWidth=1600, originalHeight=900;
-const xZ_orig=[1212,1180,1151,1121,1096], yZ_orig=[228,233,241,264,295];
-const xTocke_orig=[1358,1358,1399,1399,1358,1358,1379,1379,1480,1480,1521,1521,1503,1508,1480,1480,1462,1462,1400,1400,1380,1380,1420,1420,1400,1400,1333,1333,1278,1278,1261,1261,1238,1238,1257,1257,1233,1233,1256,1256,1216,1216,1197,1197,1156,1156,1133,1133,1172,1172,1193,1193,1216,1216,1236,1236,1256,1256,1237,1237,1196,1196,1156,1156,1173,1173,1135,1135];
-const yTocke_orig=[325,428,428,449,449,492,492,474,474,492,492,512,512,535,535,513,513,494,494,510,510,532,532,552,552,596,596,609,609,537,537,557,557,577,577,594,594,610,610,655,655,715,715,755,755,797,797,818,818,798,798,820,820,780,780,759,759,838,838,860,860,881,881,858,858,839,839,890];
-const xK_orig=[610,690,785,855,900], yK_orig=[875,800,831,730,835];
-
-const intervalMs=6, maxRac=5;
-const audio=document.getElementById('racaAudio');
-let xZ=[], yZ=[], xTocke=[], yTocke=[], xK=[], yK=[];
-let vseRace=[], activeIntervals=[];
-
-function skaliraj(origX,origY){ const scaleX=window.innerWidth/originalWidth, scaleY=window.innerHeight/originalHeight; return {x:origX.map(v=>v*scaleX), y:origY.map(v=>v*scaleY)}; }
-function novaRaca(i){ const r=document.createElement('div'); r.classList.add('raca'); r.dataset.index=i; document.body.appendChild(r); vseRace.push(r); return r; }
-function postaviVse(){ vseRace.forEach((r,i)=>{ r.style.left=(xZ[i]-20)+'px'; r.style.top=(yZ[i]-20)+'px'; }); 
-const mama=document.getElementById('mama'); mama.style.left=(xK[0]-100)+'px'; mama.style.top=(yK[0]-100)+'px'; 
-const gumb=document.getElementById('racaGumb'); gumb.style.left='200px'; gumb.style.top='400px'; }
-
-function premakniRaco(racaDiv, index=0){
-    if(index>=xTocke.length){ koncniPremikRaca(racaDiv, parseInt(racaDiv.dataset.index)); return; }
-    const startX=parseFloat(racaDiv.style.left)+20, startY=parseFloat(racaDiv.style.top)+20;
-    const endX=xTocke[index], endY=yTocke[index], steps=100;
-    let step=0;
-    const dx=(endX-startX)/steps, dy=(endY-startY)/steps;
-    const interval=setInterval(()=>{
-        if(step>=steps){ clearInterval(interval); racaDiv.style.left=(endX-20)+'px'; racaDiv.style.top=(endY-20)+'px'; premakniRaco(racaDiv,index+1); return; }
-        racaDiv.style.left=(startX+dx*step-20)+'px'; racaDiv.style.top=(startY+dy*step-20)+'px'; step++;
-    }, intervalMs);
-    activeIntervals.push(interval);
-}
-
-function koncniPremikRaca(racaDiv,index){
-    const startX=parseFloat(racaDiv.style.left)+20, startY=parseFloat(racaDiv.style.top)+20;
-    const endX=xK[index], endY=yK[index], steps=100; let step=0;
-    const interval=setInterval(()=>{ if(step>=steps){ clearInterval(interval); return; } racaDiv.style.left=(startX+(endX-startX)/steps*step-20)+'px'; racaDiv.style.top=(startY+(endY-startY)/steps*step-20)+'px'; step++; }, intervalMs);
-    activeIntervals.push(interval);
-}
-
-function resetAnimacije(){ activeIntervals.forEach(i=>clearInterval(i)); activeIntervals=[]; }
-
-function inicializiraj(){
-    ({x:xZ,y:yZ}=skaliraj(xZ_orig,yZ_orig));
-    ({x:xTocke,y:yTocke}=skaliraj(xTocke_orig,yTocke_orig));
-    ({x:xK,y:yK}=skaliraj(xK_orig,yK_orig));
-    if(vseRace.length===0) for(let i=0;i<maxRac;i++) novaRaca(i);
-    postaviVse();
-    resetAnimacije();
-}
-
-window.onload=inicializiraj;
-window.addEventListener('resize',inicializiraj);
-
-document.getElementById('racaGumb').onclick=()=>{
-    resetAnimacije();
-    const zamiki=[0,25200,47500,68000,87000];
-    vseRace.forEach((r,i)=>setTimeout(()=>premakniRaco(r,0), zamiki[i]));
-    audio.pause(); audio.currentTime=0; audio.volume=0.5; audio.play().catch(e=>console.log(e));
+    info.style.display = "block";
+    setTimeout(() => { info.style.display = "none"; }, 3000); 
 };
 
-document.addEventListener('mousemove', e=>{
-    document.getElementById('coords').textContent=`X:${e.clientX}, Y:${e.clientY}`;
-    const info=document.getElementById('infoPolje');
-    const rX=xZ[0], rY=yZ[0];
-    if(Math.abs(e.clientX-rX)<30 && Math.abs(e.clientY-rY)<30) info.style.display='block'; else info.style.display='none';
-});
+// NASTAVITVE
+const xTocke = [390,390,423,423,390,390,411,411,489,489,519,519,507,507,490,490,474,474,423,423,404,404,436,436,423,423,377,377,326,326,305,305,289,289,307,307,290,290,305,305,273,273,260,260,223,223,206,206,238,238,254,254,272,272,289,289,305,305,289,289,258,258,222,222,239,239,206,206];
+const yTocke = [25 ,128,128,145,145,176,176,165,165,180,180,195,195,212,212,194,194,179,179,192,192,210,210,226,226,257,257,277,277,212,212,229,229,246,246,260,260,280,280,306,306,359,359,390,390,425,425,442,442,425,425,442,442,414,414,393,393,455,455,477,477,491,491,473,473,461,461,495];
+const xMR = [50, 150, 350, 500, 350, 90], yMR = [220, 250, 220, 300, 330, 300];
+const xZ = [262, 230, 201, 171, 146], yZ = [-72, -67, -59, -36, -5];
+const xK = [-400, -310, -215, -145, -100], yK = [575, 500, 531, 430, 535];
+
+let vseRace = [], activeIntervals = [], koncaneRace = 0;
+const mama = document.getElementById('mama');
+const audio = document.getElementById('racaAudio');
+const labirintSlikca = document.getElementById('labirintSlikca');
+
+function posodobiVelikostMame(trenutniY) {
+    const minY = 200, maxY = 380, minSize = 40, maxSize = 290;
+    let odstotek = Math.max(0, Math.min(1, (trenutniY - minY) / (maxY - minY)));
+    mama.style.width = (minSize + (odstotek * (maxSize - minSize))) + "px";
+}
+
+function premakniMamo(index = 0) {
+    if (index >= xMR.length) return;
+    const startX = parseFloat(mama.style.left), startY = parseFloat(mama.style.top);
+    const targetX = xMR[index], targetY = yMR[index];
+    mama.style.transform = targetX > startX ? "scaleX(-1)" : "scaleX(1)";
+    const steps = 100; let step = 0;
+    const dx = (targetX - startX) / steps, dy = (targetY - startY) / steps;
+    const potMama = setInterval(() => {
+        if (step >= steps) { clearInterval(potMama); premakniMamo(index + 1); return; }
+        mama.style.left = (startX + dx * step) + "px"; mama.style.top = (startY + dy * step) + "px";
+        posodobiVelikostMame(startY + dy * step); step++;
+    }, 30);
+    activeIntervals.push(potMama);
+}
+
+function premik(obj, targetX, targetY, isFinal = false, callback) {
+    const trenOdmik = (parseFloat(obj.style.width) > 40) ? 30 : 20;
+    const startX = parseFloat(obj.style.left) + trenOdmik, startY = parseFloat(obj.style.top) + trenOdmik;
+    obj.style.transform = targetX > startX + 0.5 ? "scaleX(-1)" : "scaleX(1)";
+    const steps = 50; let step = 0;
+    const dx = (targetX - startX) / steps, dy = (targetY - startY) / steps;
+    const interval = setInterval(() => {
+        if (step >= steps) {
+            clearInterval(interval);
+            if (isFinal) {
+                obj.style.width = "60px"; obj.style.height = "60px";
+                obj.style.left = (targetX - 30) + "px"; obj.style.top = (targetY - 30) + "px";
+                koncaneRace++;
+                if (koncaneRace === 5) { 
+                    labirintSlikca.style.opacity = "0"; 
+                    setTimeout(() => premakniMamo(0), 2000); 
+                }
+            }
+            if (callback) callback(); return;
+        }
+        obj.style.left = (startX + dx * step - trenOdmik) + 'px';
+        obj.style.top = (startY + dy * step - trenOdmik) + 'px';
+        step++;
+    }, 5);
+    activeIntervals.push(interval);
+}
+
+function premakniRaco(racaDiv, index = 0) {
+    if (index >= xTocke.length) { premik(racaDiv, xK[racaDiv.dataset.index], yK[racaDiv.dataset.index], true); return; }
+    premik(racaDiv, xTocke[index], yTocke[index], false, () => premakniRaco(racaDiv, index + 1));
+}
+
+function postaviVse() {
+    vseRace.forEach((r, i) => {
+        r.style.width = "40px"; r.style.height = "40px";
+        r.style.left = (xZ[i] - 20) + 'px'; r.style.top = (yZ[i] - 20) + 'px';
+        r.style.transform = "scaleX(-1)";
+    });
+    mama.style.left = "-150px"; mama.style.top = "200px"; mama.style.width = "40px";
+    labirintSlikca.style.opacity = "1"; koncaneRace = 0;
+}
+
+window.onload = () => {
+    for (let i = 0; i < 5; i++) {
+        const r = document.createElement('div'); r.classList.add('raca'); r.dataset.index = i;
+        document.getElementById('labirint').appendChild(r); vseRace.push(r);
+    }
+    postaviVse();
+};
+
+document.getElementById('racaGumb').onclick = () => {
+    // RESET GLASBE NA ZAČETEK
+    audio.currentTime = 0;
+    audio.play();
+
+    activeIntervals.forEach(i => clearInterval(i)); 
+    activeIntervals = [];
+    postaviVse();
+    const zamiki = [0, 25000, 47300, 68000, 86800];
+    vseRace.forEach((r, i) => setTimeout(() => premakniRaco(r, 0), 2500 + zamiki[i]));
+};
+
+document.getElementById('preskociGumb').onclick = () => {
+    activeIntervals.forEach(i => clearInterval(i)); activeIntervals = [];
+    vseRace.forEach((r, i) => {
+        r.style.width = "60px"; r.style.height = "60px";
+        r.style.left = (xK[i] - 30) + "px"; r.style.top = (yK[i] - 30) + "px";
+    });
+    labirintSlikca.style.opacity = "0"; koncaneRace = 5;
+    setTimeout(() => premakniMamo(0), 3000);
+};
 </script>
 </body>
 </html>
